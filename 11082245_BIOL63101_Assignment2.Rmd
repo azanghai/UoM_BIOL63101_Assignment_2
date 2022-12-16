@@ -20,7 +20,7 @@ knitr::opts_chunk$set(cache = TRUE)
 
 # Before Reading
 
-The R script, R Markdown and this `.html` file were uploaded to [my GitHub repository](https://github.com/azanghai/UoM_BIOL63101_Assignment_2), where you can view or download my code. I have also uploaded the .html file to my website. You can click [here]() to view. In order to make the code look neater, the code already explained in the text will not be explained again.
+The R script, R Markdown and this `.html` file were uploaded to [my GitHub repository](https://github.com/azanghai/UoM_BIOL63101_Assignment_2), where you can view or download my code. I have also uploaded the .html file to my website. You can click [here](https://wentingxu.netlify.app/assignment/11082245_biol63101_assignment2.html) to view. In order to make the code look neater, the code already explained in the text will not be explained again.
 
 **To get the best browsing experience, maximize the browser.**
 
@@ -53,9 +53,9 @@ library(car)
 
 ## Load Data and Preliminary Processing
 
-Here, by using function `read_csv()` function in `tidyverse` package, we load `.csv` file as a dataframe in RStudio.
+Here, by using the function `read_csv()` in the `tidyverse` package, we can load `.csv` file as a data frame in RStudio.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 #load data
 Q1_data = read_csv('./Raw_Data/assignment_2_dataset_1.csv')
 
@@ -63,22 +63,22 @@ Q1_data = read_csv('./Raw_Data/assignment_2_dataset_1.csv')
 head(Q1_data)
 ```
 
-We find that: \* value from condition needs to be renamed for better understanding. \* column `condition` needs to be converted to factor.
+We find that: \* the value from condition needs to be renamed for better understanding. \* Column `condition` needs to be converted to factors.
 
 ```{r}
 # rename the value from condition_a, condition_b to normally and degraded.
 # here we use mutate() function to recreate the column.
-# case_when() is to select case that fits for different "condition".
-Q1_data = Q1_data %>% 
+# case_when() is to select the case that fits different "condition".
+Q1_data = Q1_data %>%
     mutate(
-    condition = case_when(
-      condition == "condition_a" ~ "normally",
-      condition == "condition_b" ~ "degraded"
+        condition = case_when(
+            condition == "condition_a" ~ "normally",
+            condition == "condition_b" ~ "degraded"
+        )
     )
-  )
 
-# code condition as a factor,using mutate function and factor function to replace the old column. 
-Q1_data = Q1_data %>% 
+# code condition as a factor,using mutate function and factor function to replace the old column.
+Q1_data = Q1_data %>%
     mutate(condition = factor(condition))
 
 # double check if the data is coded correctly.
@@ -89,40 +89,41 @@ Now the data looks correctly loaded.
 
 ## Summarize the Data {.tabset .tabset-fade .tabset-pills}
 
-Here I have use different measures to summarize the data, the result is the same, but the method provide different aspect of the data.
+Here I have used different measures to summarize the data, the result is the same, but the method provides a different aspect of the data.
 
 ### Using Base R Functions
 
-We can use base R functions to summarize the data by using following code.
+We can use base R functions to summarize the data by using the following code.
 
 ```{r}
 # summarize data using base R functions
-Q1_data %>% 
+Q1_data %>%
     # we want to view the data in different conditions.
-    group_by(condition) %>% 
+    group_by(condition) %>%
     # here we calculate mean and sd for the data, using summarize()
-    summarise(mean = mean(response_time), sd = sd(response_time))
+    summarise(mean = mean(response_time),
+              sd = sd(response_time))
 ```
 
 ### Using `psych` Package
 
-`psych` is a package specifically coded for psychology students. It has most function for personality, psychometric theory and experimental psychology purpose. Here we use `describeBy()` function to summarize the data. The reason I use this package is because it provide values from the number of valid cases to the skew, which gives us a good understanding of the data.
+`psych` is a package coded explicitly for psychology students. It has functions for personality, psychometric theory and experimental psychology purposes. Here we use the `describeBy()` function to summarize the data. I use this package because it provides values from the number of valid cases to the skew, which gives us a good understanding of the data.
 
 ```{r}
-# according to the documentation of this package, to compare data in different groups, we use `describeBy()` function. 
+# according to this package's documentation, we use `describeBy()` function to compare data in different groups.
 # The first argument sent is the data frame, and the second one is the group list.
 describeBy(Q1_data$response_time, Q1_data$condition)
 ```
 
 ### Using `skimr` Package
 
-`skimr` is also a package that helps us summarize the data , the reason I use this package is that it can compare the data in one chart. And it's also easy to use.
+`skimr` is also a package that helps us summarize the data. I use this package because it can compare the data in one chart. And it's also easy to use.
 
 ```{r}
-Q1_data %>% 
-    group_by(condition) %>% 
+Q1_data %>%
+    group_by(condition) %>%
     # here we use skim() function to generate summarize.
-    skim() %>% 
+    skim() %>%
     # as we are only interested in the response_time variable, we use filter() to select it and compare between groups.
     filter(skim_variable == "response_time")
 ```
@@ -131,12 +132,12 @@ Q1_data %>%
 
 Here, by visualizing the data, we can have a first impression of whether there are differences in the data.
 
-```{r}
+```{r, message=FALSE, warning=FALSE,fig.align='left',out.width='100%',out.height='100%'}
 # Seed is set here to ensure reproducibility.
 set.seed(11082245)
 # use ggplot to demonstrate the distribution of data.
-Q1_data %>% 
-    #here we set x axis as condition, y axis as response time, and We coloured the data according to the different conditions.
+Q1_data %>%
+    #here we set x axis as condition, y axis as response time, and we coloured the data according to the different conditions.
     ggplot(aes(x = condition, y = response_time, colour = condition)) +
     # here we add a layer of violin plot using settings and parameters in ggplot()
     geom_violin() +
@@ -144,7 +145,7 @@ Q1_data %>%
     geom_jitter(width = .1) +
     # the figure is clear enough and we do not need a guides.
     guides(colour = FALSE) +
-    # here we use stat_summary() function to add another layer. 
+    # here we use stat_summary() function to add another layer.
     # "mean_cl_boot" is a built in function to acquire confidence limits for the mean.
     stat_summary(fun.data = "mean_cl_boot", colour = "black") +
     # also, a theme and text size is set here for a better view.
@@ -152,7 +153,7 @@ Q1_data %>%
     theme(text = element_text(size = 13)) 
 ```
 
-By viewing the plot, we have also found that there is no abnormal value. So we don't need to remove the abnormal value
+By viewing the plot, we have also found no abnormal value. So we don't need to remove the abnormal value
 
 ## Normality and Homogeneity of Variance Test
 
@@ -161,7 +162,7 @@ As there are three assumptions in ANOVA.\
 - These distributions have the same variance.\
 - The data are independent.
 
-Though the program will calculate and correct the variance, and The central limit theorem tells us that no matter what distribution things have, the sampling distribution tends to be normal if the sample is large enough (n \> 30). Still, we would like to perform a test for Normal Distribution and Homogeneity of Variance
+Though the program will calculate and correct the variance, and the central limit theorem tells us that no matter what distribution things have, the sampling distribution tends to be normal if the sample is large enough (n \> 30). Still, we would like to perform a test for Normal Distribution and Homogeneity of Variance
 
 ### Normality Test {.tabset .tabset-fade .tabset-pills}
 
@@ -169,17 +170,17 @@ Though the program will calculate and correct the variance, and The central limi
 
 We can draw a Q-Q plot to find whether the data is distributed normally.
 
-As we can see, if the dots is distributed around the line `y = x`, it means that the distribution of the data is likely to be Normal distribution. But to be certain, we also need to perform a Normal Distribution Test
+As we can see, if the dots are distributed around the line `y = x`, it means that the distribution of the data is likely to be Normal distribution. But to be certain, we also need to perform a Normal Distribution Test
 
-```{r}
+```{r,fig.align='left',out.width='100%',out.height='100%'}
 ggplot(data = Q1_data, aes(sample = response_time, colour = factor(condition))) +
-  geom_qq() +
-  geom_qq_line() +
-  facet_wrap(~condition) +
-  guides(colour = FALSE) +
-  labs(y = "Response Time", x = "Normal Theoretical Quantiles") +
-  theme_minimal() +
-  theme(text = element_text(size = 13))
+    geom_qq() +
+    geom_qq_line() +
+    facet_wrap( ~ condition) +
+    guides(colour = FALSE) +
+    labs(y = "Response Time", x = "Normal Theoretical Quantiles") +
+    theme_minimal() +
+    theme(text = element_text(size = 13))
 ```
 
 From the plot, we can see that the dots for different data group is closely attached to the `y = x` line. Therefore, the data may be normally distributed.
@@ -188,19 +189,20 @@ From the plot, we can see that the dots for different data group is closely atta
 
 Then we perform a Shapiro-Wilk normality test.
 
+Here we use the `tapply()` function. The first argument is the data frame, and the second is the Classification parameters. The third one is the function that we want to perform. This function allows us to perform repeated functions using one line of code.
+
 ```{r}
-# here we use tapply()function, the first argument is the data frame, the second argument is the Classification parameters, the third one is the function that we want to perform, this function allows us to perform multiple repeated functions by using one line of code.
-tapply(Q1_data$response_time,Q1_data$condition,shapiro.test)
+tapply(Q1_data$response_time, Q1_data$condition, shapiro.test)
 ```
 
-For the output, the P-value \> 0.05. Therefore we could say that the distribution of the data are not significantly different from normal distribution. In other words, we can assume the normality.
+For the output, the P-value \> 0.05. Therefore we could say that the distribution of the data is not significantly different from the normal distribution. In other words, we can assume the normality.
 
 ### Homogeneity of Variance Test
 
-Here we perform a Levene's Test for Homogeneity of Variance. Only because this is one of the most commonly used method.
+Here we perform the Levene's Test for Homogeneity of Variance only because this is one of the most commonly used methods.
 
+This function is in the `car` package. Just like the liner model, we load the factor and the variable in the function to get a result.
 ```{r}
-# this function is in car package which is loaded by the tidyverse. Just like the liner model, we load the factor and the variable in the function to get a result
 leveneTest(response_time ~ condition, data = Q1_data)
 ```
 
@@ -208,80 +210,83 @@ As the p-value is higher than 0.05(0.5175), Therefore we accept the null hypothe
 
 ## Building ANOVA model
 
-Here, we build the model by considering `response_time` as DV, and `condition` as IV. Meanwhile, `participant` is considered as the souce of random error.
+Here, we build the model by considering `response_time` as DV, and `condition` as IV. Meanwhile, `participant` is considered as the source of random error.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 Q1_model_1 = aov_4(response_time ~ condition + (1 | participant),data = Q1_data)
 ```
 
-Then, we would like to take a look at the model we built, and perform a post-hoc analysis.
+Then, we would like to take a look at the model we built and perform a post-hoc analysis.
 
 ```{r}
 summary(Q1_model_1)
-# by using emmeans(), we could compare the data group by the condition factor. 
-emmeans(Q1_model_1, pairwise~condition)
+# by using emmeans(), we could compare the data group by the condition factor.
+emmeans(Q1_model_1, pairwise ~ condition)
 ```
 
-we can also view the result in a plot by adding sever layer on the plot we have made. Function `stat_compare_means()` is used to accomplish this task. By setting `comparisons` to `degraded` and `normally`, we draw a line to indicate the p-value between these groups. Also, by setting `symnum.args`, we can convert p-value to symbols for a better understanding.
+We can also view the result in a plot by adding several layers on the plot we have made. Function `stat_compare_means()` is used to accomplish this task. By setting `comparisons` to `degraded` and `normally`, we draw a line to indicate the p-value between these groups. Also, by setting `symnum.args`, we can convert the p-value to symbols for a better understanding.
 
-```{r,warning=FALSE,message = FALSE,results='hide'}
+```{r,fig.cap='***p<0.001',warning=FALSE,message = FALSE,results='hide',fig.align='left',,out.width='100%',out.height='100%'}
 Q1_data %>%
     ggplot(aes(x = condition, y = response_time, colour = condition)) +
     geom_violin() +
     geom_jitter(width = .1) +
     # here we add ANOVA result to the plot
-    stat_compare_means(method = "anova") + 
-    # here we draw the line to compare groups
-    stat_compare_means(comparisons = list(c("degraded", "normally")),symnum.args = list(
-        # use * to illustrate the p value
-        cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf),
-        symbols = c("****", "***", "**", "*", "ns")
-    )) +
-    guides(colour = FALSE)+
+    # note this anova function may not get the same result.
+    stat_compare_means(method = "anova") +
+    # here we draw the line to compare different groups
+    stat_compare_means(comparisons = list(c("degraded", "normally")),
+                       symnum.args = list(
+                           # use * to illustrate the p value
+                           cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf),
+                           symbols = c("****", "***", "**", "*", "ns")
+                       )) +
+    guides(colour = FALSE) +
     theme_minimal() +
-    theme(text = element_text(size = 13))+
+    theme(text = element_text(size = 13)) +
     labs(y = "Response Time", x = "Conditions")
 ```
 
 ### T-test
 
-As the experiment is a between participants design, and only have a factor with 2 levels. Therefore, a t-test is available for the data analysis.
+A t-test is available for the data analysis as the experiment is a between-participants design and only has a factor with two levels. 
+
+By using the built-in `t.test()` function, the first parameter we sent is the data frame, and the second one is the group value. The function will perform a t-test based on the parameter we sent.
 
 ```{r}
-# by using built in t.test() function, the first parameter we sent is the data frame, and the second one is group value, the function will perform a t-test based on the parameter we sent.
 t.test(Q1_data$response_time ~ Q1_data$condition)
 ```
 
-The result is similar, difference is significant.
+The result is similar, the difference is significant.
 
 ## Conclusion
 
-From the analysis performed. It can be inferred that the difference between response time caused by different visual quality is significant. Which means, the subject will response quicker(estimated marginal means = 1002) with normally present the words than visually degraded(estimated marginal means = 1020).
+From the analysis performed. It can be inferred that the difference between response time caused by different visual quality is significant. This means the subject will respond quicker(estimated marginal means = 1002) with normally present words than visually degraded(estimated marginal means = 1020).
 
 # Question 2
 
 ## Load Data and Preliminary Processing
 
-Similiar to Question 1, we want to load the data and perform some preliminary processing.
+Similar to Question 1, we want to load the data and perform some preliminary processing.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 Q2_data = read_csv('./Raw_Data/assignment_2_dataset_2.csv')
 head(Q2_data)
 
-Q2_data = Q2_data %>% 
+Q2_data = Q2_data %>%
     mutate(
-    condition = case_when(
-      condition == "condition_a" ~ "normally",
-      condition == "condition_b" ~ "degraded"
+        condition = case_when(
+            condition == "condition_a" ~ "normally",
+            condition == "condition_b" ~ "degraded"
+        )
     )
-  )
 head(Q2_data)
 ```
 
 Also, we want to convert `condition` in to factor.
 
 ```{r}
-Q2_data = Q2_data %>% 
+Q2_data = Q2_data %>%
     mutate(condition = factor(condition))
 head(Q2_data)
 ```
@@ -291,28 +296,28 @@ head(Q2_data)
 Here, we use `skimr` package to summarize the data. In this case, we want to learn the distribution of the data under the condition `caffeine` and `condition`.
 
 ```{r}
-Q2_data %>% 
-    group_by(condition) %>% 
-    skim() %>% 
+Q2_data %>%
+    group_by(condition) %>%
+    skim() %>%
     filter(skim_variable != "participant")
 
-Q2_data %>% 
-    group_by(caffeine) %>% 
-    skim() %>% 
+Q2_data %>%
+    group_by(caffeine) %>%
+    skim() %>%
     filter(skim_variable == "response_time")
 ```
 
-However, this is still to complicated. Data visualization is considered to demonstrate the data in a more efficient way.
+However, this is still too complicated. Data visualization is considered to demonstrate the data in a more efficient way.
 
 ## Data Visualization
 
-Here, we built a scatter plot. By viewing the plot, it seems that there is a relation between response time and caffeine consumption.
+Here, we built a scatter plot. By viewing the plot, it seems that there is a relationship between response time and caffeine consumption.
 
-```{r}
+```{r,fig.align='left',out.width='100%',out.height='100%'}
 # we set colour = condition in order to distinguish the relation between caffeine consumption and conditions. 
-ggplot(Q2_data, aes(x = caffeine, y = response_time, colour = condition)) + 
+ggplot(Q2_data, aes(x = caffeine, y = response_time, colour = condition)) +
     geom_point(size = 3, alpha = .9) +
-    labs(x = "Caffeine Consumption (cups of coffee)", 
+    labs(x = "Caffeine Consumption (cups of coffee)",
          y = "Response Time") +
     theme_minimal() +
     theme(text = element_text(size = 11)) 
@@ -324,13 +329,13 @@ Again, as the data is identical to question 1, we do not need to repeat the norm
 
 ### ANOVA Model
 
-In this case, we set `response` as DV, and condition as IV. Also, we add caffeine as a covariate. Meanwhile, we set `factorize` as false to avoid program reading `caffeine` as a factor.
+In this case, we set `response` as DV and condition as IV. Also, we add caffeine as a covariate. Meanwhile, we set `factorize` as false to avoid the program reading `caffeine` as a factor.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 Q2_model = aov_4(response_time ~ caffeine + condition +(1 | participant),data = Q2_data,factorize = FALSE)
 ```
 
-After that we use `anova()` function to acquire the effect size. And using `emmeans` to compare different groups.
+After that, we use the `anova()` function to acquire the effect size. And using `emmeans()` to compare different groups.
 
 ```{r}
 anova(Q2_model)
@@ -338,16 +343,16 @@ anova(Q2_model)
 emmeans(Q2_model, pairwise ~ condition)
 ```
 
-From the result, it seems that the effect of covariate and conditions is not significant in this case. And the adjusted means is slightly different when considering the influence of caffeine(normally from 1002 to 1005, degraded from 1020 to 1018).
+From the result, it seems that the effect of covariate and conditions is not significant in this case. And the adjusted means are slightly different when considering the influence of caffeine(normally from 1002 to 1005, degraded from 1020 to 1018).
 
 ### linear model
 
-Here, we use the `lm()` function to build a linear model. But first,we want to set the factor level.
+Here, we use the `lm()` function to build a linear model. But first, we want to set the factor level.
 
 ```{r}
 Q2_data <- Q2_data %>%
     mutate(condition = fct_relevel(condition,
-                                   c("normally","degraded")))
+                                   c("normally", "degraded")))
 # here we use contrasts() to check the contrasts
 contrasts(Q2_data$condition)
 ```
@@ -363,17 +368,17 @@ At this step we can finally write the function as `Resopnse Time = 998.564 + 12.
 
 ```{r}
 # for ANOVA result: normally = 1005
-Resopnse_Time_normally = 998.564 + 12.791*0 + 2.469*mean(Q2_data$caffeine)
+Resopnse_Time_normally = 998.564 + 12.791 * 0 + 2.469 * mean(Q2_data$caffeine)
 Resopnse_Time_normally
 
 # for ANOVA result: degraded = 1018
-Resopnse_Time_degraded = 998.564 + 12.791*1 + 2.469*mean(Q2_data$caffeine)
+Resopnse_Time_degraded = 998.564 + 12.791 * 1 + 2.469 * mean(Q2_data$caffeine)
 Resopnse_Time_degraded
 ```
 
 As we can see, the result is rounded to the ANOVA result. That means they have the same result.
 
-However, it seems to me that there is no clear "order" between the two levels under condition, they are just different categories. So it is a little bit "weird" to use "normally" as an intercept. To solve this feeling, I find a way to set the intercept to zero.
+However, it seems to me that there is no clear "order" between the two levels under the conditions. They are just different categories. So it is a little bit "weird" to use "normally" as an intercept. To solve this feeling, I find a way to set the intercept to zero.
 
 ```{r}
 Q2_model_lm_1 = lm(response_time ~ condition - 1 + caffeine, data = Q2_data)
@@ -385,7 +390,159 @@ I find this method on [stack overflow](https://stackoverflow.com/questions/41032
 Also, there is another way to add a `0` in the formula. This sets the intercept to zero.
 
 ```{r}
-Q2_model_lm_2 = lm(response_time ~ 0 + caffeine + condition, data = Q2_data)
+Q2_model_lm_2 = lm(response_time ~ 0 + condition + caffeine, data = Q2_data)
 Q2_model_lm_2
 ```
 
+The function will be `Response Time = 998.564*normally + 1011.354*degraded + 2.469*mean(Q2_data$caffeine)`. But still we will get the same result compared to ANOVA data.
+
+```{r}
+# for ANOVA result: normally = 1005
+Response_Time_0_1 = 998.564 * 1 + 1011.354 * 0 + 2.469 * mean(Q2_data$caffeine)
+Response_Time_0_1
+
+# for ANOVA result: degraded = 1018
+Response_Time_0_2 = 998.564 * 0 + 1011.354 * 1 + 2.469 * mean(Q2_data$caffeine)
+Response_Time_0_2
+```
+
+# Question 3
+
+## Load Data and Preliminary Processing
+
+```{r, message=FALSE, warning=FALSE}
+Q3_data_raw = read_csv('./Raw_Data/assignment_2_dataset_3.csv')
+head(Q3_data_raw)
+```
+
+Here, we find that we need to convert data frame to longer format.
+
+```{r}
+Q3_data_converted <- Q3_data_raw %>%
+    # pivot function can convert wider data frame to longer data frame
+    pivot_longer(
+        # here we set columns that need to be converted
+        cols = c(
+            positiveprime_positivetarget,
+            positiveprime_negativetarget,
+            negativeprime_positivetarget,
+            negativeprime_negativetarget
+        ),
+        # we send two column name here to indicate the function to convert them into two columns
+        names_to = c("prime", "target"),
+        # here we tell the function to separate conditions at the '_' symbol
+        names_sep = "_" ,
+        # here we tell the program where to save the value
+        values_to = "rt",
+        # set the transformed variable to be factor
+        names_transform = "factor"
+    )
+
+# manually check the data
+head(Q3_data_converted)
+```
+
+## Summarize the Data
+
+Here, we use `skimr` package to summarize our data.
+
+```{r}
+Q3_data_converted %>%
+    # in this case, we use two grouping variables
+    group_by(prime, target) %>%
+    skim() %>%
+    filter(skim_variable == "rt")
+```
+
+From the result, we can find that there is no missing data, and it seems that there is a difference between coherent and incoherent prime-target pairs.
+
+## Data Visualization
+
+```{r,,fig.align='left',out.width='100%',out.height='100%'}
+Q3_data_converted %>%
+    # here we set x axis to be prime and target pair, which helps us compare the data
+    ggplot(aes(
+        x = prime:target,
+        y = rt,
+        colour = prime:target
+    )) +
+    geom_violin() +
+    geom_jitter(width = .1, alpha = .25) +
+    guides(colour = FALSE) +
+    stat_summary(fun.data = "mean_cl_boot", colour = "black") +
+    theme_minimal() +
+    # because the tag is too long, we need to rotate it a little bit.
+    theme(text = element_text(size = 13),
+          axis.text.x = element_text(
+              angle = 35,
+              vjust = 0.5,
+              hjust = 0.5
+          )) +
+    labs(x = "Prime X Target", y = "RT")
+```
+
+## Building Model
+
+As the data are from a 2 x 2 repeated measures design. Therefore we use `prime * target` to be the predictor. This corresponds to two main effects, plus the interaction between them. Meanwhile, because it is a repeated measures design, we want to add `prime * target` to the random effect.
+
+```{r, message=FALSE, warning=FALSE}
+Q3_model = aov_4(rt ~ prime * target + (1 + prime * target | participant), data = Q3_data_converted)
+Q3_model
+```
+
+And we use the `anova()` function to get a more detailed result. Meanwhile, use `emmeans()` to compare different levels. I have chosen the Bonferroni method because ~~it seems that the Tukey method is not suitable for repeated measures design~~(I've seen it somewhere on stack overflow, and it is recommended in our course). 
+
+```{r}
+# we use this function to get a more specific result
+anova(Q3_model)
+
+# here we use
+emmeans(Q3_model, pairwise ~ prime * target, adjust = "Bonferroni")
+```
+
+## Conclusion
+
+According to the result, we can infer that the difference between `negativeprime negativetarget - positiveprime negativetarget` is statistically significant(1547 to 1567, t(294)=3.138, *p* = 0.0123). And the difference between `negativeprime positivetarget - positiveprime positivetarget` is also statistically significant(1563 to 1547, t(294)=2.908, *p* = 0.0252). It means that people could responded faster to positive images following a positive prime, and also can responded faster to negative images following a negative prime. Meanwhile, We conducted a 2 (Prime: Positive vs. Negative) x 2 (Target: Positive vs. Negative) repeated measures ANOVA to investigate the influence of prime valence on reaction times to pictures of Positive or Negative valence. The ANOVA revealed no effect of prime (F(1,147) = .3157, *p* = .5751, ηG2 = .0004908), no effect of target (F(1, 147) = .2375, *p* = .6267, ηG2 = .0004315), but an interaction between target and prime (F(1, 147) = 17.2541, p = <.001, ηG2 = .0292770).
+
+For a easier way to understand this, I have made a plot. 
+
+```{r,fig.cap='*p<0.05, **p<0.01', message=FALSE, warning=FALSE,fig.align='left',out.width='100%',out.height='100%',results='hide'}
+Q3_data_converted %>%
+    # here we set x axis to be prime and target pair, which helps us compare data
+    ggplot(aes(
+        x = prime:target,
+        y = rt,
+        colour = prime:target
+    )) +
+    geom_violin() +
+    geom_jitter(width = .1, alpha = .25) +
+    guides(colour = FALSE) +
+    stat_summary(fun.data = "mean_cl_boot", colour = "black") +
+    theme_minimal() +
+    # because the tag is too long, we need to rotate it a little bit.
+    theme(text = element_text(size = 13),
+          axis.text.x = element_text(
+              angle = 35,
+              vjust = 0.5,
+              hjust = 0.5
+          )) +
+    labs(x = "Prime X Target", y = "RT") +
+    # here we draw the line to compare groups
+    stat_compare_means(comparisons = list(
+        c(
+            "negativeprime:negativetarget",
+            "positiveprime:negativetarget"
+        ),
+        c(
+            "positiveprime:positivetarget",
+            "negativeprime:positivetarget"
+        )
+    ),
+    symnum.args = list(
+        # use * to illustrate the p value
+        cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf),
+        symbols = c("****", "***", "**", "*", "ns")
+    ))
+```
+
+<center>------✨🎄Merry Christmas🎄✨------</center>
